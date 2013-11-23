@@ -1,16 +1,32 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/waterwheel.css">
     <title>Water Wheel</title>
   </head>
   <body>
-    <canvas width="800" height="800" id="c"></canvas>
-    <div id="controls">
-      Fill <input type="range" min="0" max="200" value="40" id="fill_slider"> 
-      Drip <input type="range" min="0" max="200" step="0.1" value="1.5" id="drip_slider">
-      <button id="add_bucket_button">Add Bucket</button>
-      <button id="remove_bucket_button">Remove Bucket</button>
-      <button id="toggle_animation_button">Toggle Animation</button>
+    
+    <div class="row">
+      <div class="large-12 columns">
+        <h1>Lorenz Water Wheel</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="large-8 columns">
+	<canvas width="600" height="600" id="c"></canvas>
+      </div>
+      <div class="medium-4 columns">
+	<div id="controls">
+	  <label>Fill (<span id="fill_value">40</span>)</label><input type="range" min="0" max="200" value="40" id="fill_slider"> 
+	  <label>Drip (<span id="drip_value">1.5</span>)</label><input type="range" min="0" max="200" step="0.1" value="1.5" id="drip_slider">
+	  <button class="" id="add_bucket_button">Add Bucket</button>
+	  <button class="alert" id="remove_bucket_button">Remove Bucket</button>
+	  <button class="success" id="toggle_animation_button">Toggle Animation</button>
+	</div>
+      </div>
     </div>
   </body>
   <script type="application/javascript" src="underscore.js"></script>
@@ -18,10 +34,14 @@
   <script type="application/javascript">
     var wheel = new Wheel(40, 40, 1.5, document.getElementById('c'));
     document.getElementById('fill_slider').addEventListener('input', function() {
-       wheel.setFillRate(parseFloat(this.value));
+       var parsed = parseFloat(this.value);
+       wheel.setFillRate(parsed);
+       document.getElementById('fill_value').innerHTML = parsed;
     });
     document.getElementById('drip_slider').addEventListener('input', function() {
-       wheel.setDripRate(parseFloat(this.value));
+       var parsed = parseFloat(this.value);
+       wheel.setDripRate(parsed);
+       document.getElementById('drip_value').innerHTML = parsed;
     });
     document.getElementById('add_bucket_button').addEventListener('click', function() {
        wheel.addBucket();
