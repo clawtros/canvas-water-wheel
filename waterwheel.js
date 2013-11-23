@@ -103,11 +103,19 @@
       this.canvas.addEventListener('click', this.toggleAnimating);
     },
     addBucket: function() {
+      var angleDelta = 2 * Math.PI / (this.buckets.length + 1);
+      for (var i = 0; i < this.buckets.length; i++) {
+        this.buckets[i].angle = i * angleDelta;
+      }
+      this.buckets.push(new Bucket((i) * angleDelta, this.canvas.width));
+    },
+    removeBucket: function() {
+      this.buckets = this.buckets.slice(1);
       var angleDelta = 2 * Math.PI / (this.buckets.length);
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
       }
-      this.buckets.push(new Bucket((i+1) * angleDelta, this.canvas.width));
+
     },
     toggleAnimating: function() {
       var self = this;
@@ -119,7 +127,7 @@
       }
     },
     fillSpoutTarget: function() {
-      var min_y = 6000,
+      var min_y = this.canvas.height,
           target = false;
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         var bucket = this.buckets[i],
@@ -150,13 +158,11 @@
     },
 
     setFillRate: function(new_value) {
-      console.log('fill', new_value);
       this.fill_rate = new_value;
     },
 
     setDripRate: function(new_value) {
-      console.log('drip', new_value);
-      this.drip_rate = new_value;
+      this.drain_rate = new_value;
     },
 
     animate: function() {
