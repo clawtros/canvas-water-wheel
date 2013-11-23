@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Water Wheel</title>
+  </head>
+  <body>
+    <canvas width="800" height="800" id="c"></canvas>
+    <div id="controls">
+      Fill <input type="range" min="0" max="100" value="40" id="fill_slider">
+      Drip <input type="range" min="0" max="100" step="0.1" value="1.5" id="drip_slider">
+      <button id="add_bucket_button">Add Bucket</button>
+    </div>
+  </body>
+  <script type="application/javascript" src="underscore.js"></script>
+  <script type="application/javascript" src="waterwheel.js"></script>
+  <script type="application/javascript">
+    var wheel = new Wheel(10, 40, 1.5, document.getElementById('c'));
+    document.getElementById('fill_slider').addEventListener('input', function() {
+       wheel.setFillRate(parseFloat(this.value));
+    });
+    document.getElementById('drip_slider').addEventListener('input', function() {
+       wheel.setDripRate(parseFloat(this.value));
+    });
+    document.getElementById('add_bucket_button').addEventListener('click', function() {
+       wheel.addBucket();
+       wheel.draw();
+    });
+  </script>
+</html>
