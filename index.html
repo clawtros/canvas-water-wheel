@@ -10,6 +10,7 @@
       Drip <input type="range" min="0" max="200" step="0.1" value="1.5" id="drip_slider">
       <button id="add_bucket_button">Add Bucket</button>
       <button id="remove_bucket_button">Remove Bucket</button>
+      <button id="toggle_animation_button">Toggle Animation</button>
     </div>
   </body>
   <script type="application/javascript" src="underscore.js"></script>
@@ -29,6 +30,9 @@
     document.getElementById('remove_bucket_button').addEventListener('click', function() {
        wheel.removeBucket();
        wheel.draw();
+    });
+    document.getElementById('toggle_animation_button').addEventListener('click', function() {
+       wheel.toggleAnimating();
     });
   </script>
 </html>

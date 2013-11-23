@@ -31,8 +31,8 @@
       return Math.sin(this.angle) * this.mass * -1;
     },
     updatePosition: function() {
-      this.x = this.wheel_size * 0.5 + this.wheel_size * 0.3 * Math.sin(this.angle);
-      this.y = this.wheel_size * 0.5 + this.wheel_size * 0.3 * Math.cos(this.angle);
+      this.x = this.wheel_size * 0.5 + this.wheel_size * 0.4 * Math.sin(this.angle);
+      this.y = this.wheel_size * 0.5 + this.wheel_size * 0.4 * Math.cos(this.angle);
     },
     draw: function(ctx) {
       this.updatePosition();
