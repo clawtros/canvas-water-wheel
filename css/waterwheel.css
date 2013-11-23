@@ -5,3 +5,7 @@ input, button {
 input {
     margin-bottom: 40px;
 }
+
+#controls {
+    margin-top: 40px;
+}
