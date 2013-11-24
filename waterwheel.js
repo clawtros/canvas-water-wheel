@@ -42,8 +42,8 @@
         ctx.fillStyle = '#8ED6FF';
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(this.x, 0);
+        ctx.moveTo(this.wheel.spoutPosition, this.y);
+        ctx.lineTo(this.wheel.spoutPosition, 0);
         ctx.lineWidth = (this.wheel.fillRate / 200.0) * 20;
         ctx.stroke();
         ctx.strokeStyle = "#000000";
