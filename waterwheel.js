@@ -3,10 +3,10 @@
 (function (context) {
   var lastDash = 0;
 
-  var Bucket = function(angle, wheel_size) {
+  var Bucket = function(angle, wheelSize) {
     this.mass = Math.random() * 100;
     this.angle = angle;
-    this.wheel_size = wheel_size;
+    this.wheelSize = wheelSize;
     this.initialize();
     this.__defineGetter__('width', function() {
       return this._width + Math.sqrt(this.mass);
@@ -31,8 +31,8 @@
       return Math.sin(this.angle) * this.mass * -1;
     },
     updatePosition: function() {
-      this.x = this.wheel_size * 0.5 + this.wheel_size * 0.4 * Math.sin(this.angle);
-      this.y = this.wheel_size * 0.5 + this.wheel_size * 0.4 * Math.cos(this.angle);
+      this.x = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.sin(this.angle);
+      this.y = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.cos(this.angle);
     },
     draw: function(ctx) {
       this.updatePosition();
@@ -42,8 +42,8 @@
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
         ctx.setLineDash([5, lastDash++ % 5]);
-        ctx.moveTo(this.wheel_size/2, this.y);
-        ctx.lineTo(this.wheel_size/2, 0);
+        ctx.moveTo(this.wheelSize/2, this.y);
+        ctx.lineTo(this.wheelSize/2, 0);
         ctx.lineWidth = 5;
         ctx.stroke();
         ctx.strokeStyle = "#000000";
@@ -55,7 +55,7 @@
 
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.wheel_size/2, this.wheel_size/2);
+      ctx.lineTo(this.wheelSize/2, this.wheelSize/2);
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -67,7 +67,7 @@
         if (this.targetBucket) {
           ctx.lineTo(this.targetBucket.x, this.targetBucket.y);
         } else {
-          ctx.lineTo(this.x, this.wheel_size);
+          ctx.lineTo(this.x, this.wheelSize);
         }
         ctx.lineWidth = 2;
 
@@ -82,21 +82,22 @@
     }
   };
 
-  var Wheel = function(num_buckets, fill_rate, drain_rate, canvas) {
-    this.num_buckets = num_buckets;
-    this.fill_rate = fill_rate;
-    this.drain_rate = drain_rate;
+  var Wheel = function(numBuckets, fillRate, drainRate, canvas) {
+    this.numBuckets = numBuckets;
+    this.fillRate = fillRate;
+    this.drainRate = drainRate;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.framesRendered = 0;
     this.initialize();
   }
+
   Wheel.prototype = {
     spoutPosition: 300,
     initialize: function() {
       _.bindAll(this, 'toggleAnimating', 'animate', 'draw');
       this.buckets = [];
-      for (var i = 0; i < this.num_buckets; i++) {
+      for (var i = 0; i < this.numBuckets; i++) {
         this.addBucket();
       }
       this.draw();
@@ -109,14 +110,15 @@
       }
       this.buckets.push(new Bucket((i) * angleDelta, this.canvas.width));
     },
+
     removeBucket: function() {
       this.buckets = this.buckets.slice(1);
       var angleDelta = 2 * Math.PI / (this.buckets.length);
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
       }
-
     },
+
     toggleAnimating: function() {
       var self = this;
       if (!!this.interval) {
@@ -126,6 +128,7 @@
         this.interval = context.setInterval(self.animate, 33);
       }
     },
+
     fillSpoutTarget: function() {
       var min_y = this.canvas.height,
           target = false;
@@ -142,7 +145,7 @@
 
       if (target !== false) {
         target.is_target = true;
-        target.mass += this.fill_rate;
+        target.mass += this.fillRate;
       }
     },
     findBucketUnder: function(sourceBucket) {
@@ -158,11 +161,11 @@
     },
 
     setFillRate: function(new_value) {
-      this.fill_rate = new_value;
+      this.fillRate = new_value;
     },
 
     setDripRate: function(new_value) {
-      this.drain_rate = new_value;
+      this.drainRate = new_value;
     },
 
     animate: function() {
@@ -173,14 +176,14 @@
         angularForce += this.buckets[i].getDownwardForce();
       }
       for (i = 0, l = this.buckets.length; i < l; i++) {
-        this.buckets[i].angle += angularForce / (1000 * this.num_buckets);
-        if (this.buckets[i].mass > this.drain_rate) {
-          this.buckets[i].mass -= this.drain_rate;
+        this.buckets[i].angle += angularForce / (1000 * this.numBuckets);
+        if (this.buckets[i].mass > this.drainRate) {
+          this.buckets[i].mass -= this.drainRate;
           var dripTarget = this.findBucketUnder(this.buckets[i]);
 
           if (dripTarget) {
             this.buckets[i].targetBucket = dripTarget;
-            dripTarget.mass += this.drain_rate;
+            dripTarget.mass += this.drainRate;
           }
         } else {
           this.buckets[i].mass = 0;
