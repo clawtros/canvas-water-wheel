@@ -9,7 +9,7 @@
     this.wheelSize = wheelSize;
     this.initialize();
     this.__defineGetter__('width', function() {
-      return this._width + Math.sqrt(this.mass);
+      return this._width + Math.sqrt(this.mass) / 2;
     });
     this.__defineSetter__('width', function(width) {
       this._width = width;
@@ -31,8 +31,8 @@
       return Math.sin(this.angle) * this.mass * -1;
     },
     updatePosition: function() {
-      this.x = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.sin(this.angle);
-      this.y = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.cos(this.angle);
+      this.x = this.wheelSize * 0.5 + this.wheelSize * 0.45 * Math.sin(this.angle);
+      this.y = this.wheelSize * 0.5 + this.wheelSize * 0.45 * Math.cos(this.angle);
     },
     draw: function(ctx) {
       this.updatePosition();
@@ -41,9 +41,9 @@
         ctx.fillStyle = '#8ED6FF';
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
-        ctx.setLineDash([5, lastDash++ % 5]);
-        ctx.moveTo(this.wheelSize/2, this.y);
-        ctx.lineTo(this.wheelSize/2, 0);
+        ctx.setLineDash([5, lastDash % 5]);
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x, 0);
         ctx.lineWidth = 5;
         ctx.stroke();
         ctx.strokeStyle = "#000000";
@@ -62,7 +62,7 @@
       if (this.mass > 0) {
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
-        ctx.setLineDash([5, lastDash++ % 5]);
+        ctx.setLineDash([5, lastDash % 5]);
         ctx.moveTo(this.x, this.y);
         if (this.targetBucket) {
           ctx.lineTo(this.targetBucket.x, this.targetBucket.y);
@@ -95,6 +95,9 @@
   Wheel.prototype = {
     spoutPosition: 300,
     initialize: function() {
+      if (!this.ctx.setLineDash) {
+        this.ctx.setLineDash = function() {};
+      }
       _.bindAll(this, 'toggleAnimating', 'animate', 'draw');
       this.buckets = [];
       for (var i = 0; i < this.numBuckets; i++) {
@@ -160,12 +163,12 @@
       return false;
     },
 
-    setFillRate: function(new_value) {
-      this.fillRate = new_value;
+    setFillRate: function(newValue) {
+      this.fillRate = newValue;
     },
 
-    setDripRate: function(new_value) {
-      this.drainRate = new_value;
+    setDripRate: function(newValue) {
+      this.drainRate = newValue;
     },
 
     animate: function() {
