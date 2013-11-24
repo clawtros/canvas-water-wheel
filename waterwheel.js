@@ -3,19 +3,20 @@
 (function (context) {
   var lastDash = 0;
 
-  var Bucket = function(angle, wheelSize) {
+  var Bucket = function(angle, wheel) {
+    this.wheelSize = wheel.canvas.width;
+    this.wheel = wheel;
     this.mass = Math.random() * 100;
     this.angle = angle;
-    this.wheelSize = wheelSize;
     this.initialize();
     this.__defineGetter__('width', function() {
-      return this._width + Math.sqrt(this.mass) / 2;
+      return this._width + Math.sqrt(this.mass) / 3;
     });
     this.__defineSetter__('width', function(width) {
       this._width = width;
     });
     this.__defineGetter__('height', function() {
-      return this._height + Math.sqrt(this.mass);
+      return this._height + Math.sqrt(this.mass) / 2;
     });
     this.__defineSetter__('height', function(height) {
       this._height = height;
@@ -38,15 +39,17 @@
       this.updatePosition();
 
       if (this.is_target) {
+        ctx.save();
         ctx.fillStyle = '#8ED6FF';
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
         ctx.setLineDash([5, lastDash % 5]);
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(this.x, 0);
-        ctx.lineWidth = 5;
+        ctx.lineWidth = (this.wheel.fillRate / 200.0) * 20;
         ctx.stroke();
         ctx.strokeStyle = "#000000";
+        ctx.restore();
       } else {
         ctx.fillStyle = '#000000';
       }
@@ -74,7 +77,6 @@
         ctx.stroke();
       }
       ctx.strokeStyle = "#000000";
-
 
       ctx.fillRect(this.x - this.width / 2,
                    this.y - this.height / 2,
@@ -111,7 +113,7 @@
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
       }
-      this.buckets.push(new Bucket((i) * angleDelta, this.canvas.width));
+      this.buckets.push(new Bucket((i) * angleDelta, this));
     },
 
     removeBucket: function() {
