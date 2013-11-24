@@ -8,13 +8,13 @@
     this.angle = angle;
     this.initialize();
     this.__defineGetter__('width', function() {
-      return this._width + this.mass / ((this.wheel.numBuckets+1)*15);
+      return this._width + Math.sqrt(this.mass / (this.wheel.numBuckets+1));
     });
     this.__defineSetter__('width', function(width) {
       this._width = width;
     });
     this.__defineGetter__('height', function() {
-      return this._height + this.mass / ((this.wheel.numBuckets+1)*15);
+      return this._height + Math.sqrt(this.mass / (this.wheel.numBuckets+1));
     });
     this.__defineSetter__('height', function(height) {
       this._height = height;
@@ -23,11 +23,12 @@
   Bucket.prototype = {
     _width: 10,
     _height: 10,
+    baseMass: 5,
     initialize: function() {
       this.updatePosition();
     },
     getDownwardForce: function() {
-      return Math.sin(this.angle) * this.mass * -1;
+      return Math.sin(this.angle) * (this.mass + 1) * -1;
     },
     updatePosition: function() {
       this.x = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.sin(this.angle);
@@ -51,17 +52,16 @@
         ctx.fillStyle = '#000000';
       }
 
-      if (this.mass > 0) {
+      if (this.mass > 0 && this.wheel.drainRate > 0) {
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         if (this.targetBucket) {
-          ctx.lineTo(this.targetBucket.x, this.targetBucket.y);
+          ctx.lineTo(this.x, this.targetBucket.y);
         } else {
           ctx.lineTo(this.x, this.wheelSize);
         }
-        ctx.lineWidth = 2;
-
+        ctx.lineWidth = (this.wheel.drainRate / 200.0) * 20 + 1;
         ctx.stroke();
       }
       ctx.strokeStyle = "#000000";
@@ -85,6 +85,7 @@
     friction: 0.01,
     framesRenderer: 0,
     spoutPosition: 300,
+
     initialize: function() {
       _.bindAll(this, 'toggleAnimating', 'animate', 'draw');
       this.buckets = [];
@@ -94,6 +95,7 @@
       this.draw();
       this.canvas.addEventListener('click', this.toggleAnimating);
     },
+
     addBucket: function() {
       var angleDelta = 2 * Math.PI / (this.buckets.length + 1);
       for (var i = 0; i < this.buckets.length; i++) {
@@ -102,11 +104,13 @@
       this.buckets.push(new Bucket((i) * angleDelta, this));
       this.numBuckets = this.buckets.length;
     },
+
     adjustBaseBucketWidth: function(newValue) {
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i]._width = newValue;
       }
     },
+
     removeBucket: function() {
       this.buckets = this.buckets.slice(1);
       var angleDelta = 2 * Math.PI / (this.buckets.length);
@@ -134,7 +138,9 @@
             start_bucket = bucket.x - bucket.width / 2,
             stop_bucket = bucket.x + bucket.width / 2;
         bucket.is_target = false;
-        if (bucket.y < min_y) {
+        if (this.spoutPosition > bucket.x - bucket.width / 2 &&
+            this.spoutPosition < bucket.x + bucket.width / 2 &&
+            bucket.y < min_y) {
           min_y = bucket.y;
           target = bucket;
         }
@@ -203,11 +209,10 @@
         this.ctx.stroke();
       }
     },
+
     draw: function() {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
       for (var i = 0, l = this.buckets.length; i < l; i++) {
-
         this.buckets[i].draw(this.ctx);
       }
       this.drawSpokes();
