@@ -9,3 +9,8 @@ input {
 #controls {
     margin-top: 40px;
 }
+
+path { 
+    fill: none;
+    stroke: black;
+}

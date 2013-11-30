@@ -1,6 +1,69 @@
-/* global _*/
+/* global d3, _ */
 
 (function (context) {
+
+  var HISTORY_SIZE = Infinity;
+
+  var Graph = function(wheel) {
+    _.bindAll(this, 'initialize', 'update');
+    this.wheel = wheel;
+
+  };
+
+  Graph.prototype = {
+    initialize: function() {
+      var margin = {top: 20, right: 50, bottom: 30, left: 50},
+          data = this.wheel.forceHistory;
+
+      this.width = 1060 - margin.left - margin.right;
+      this.height = 700 - margin.top - margin.bottom;
+
+      this.svg = d3.select("#graph")
+                 .attr("width", this.width + margin.left + margin.right)
+                 .attr("height", this.height + margin.top + margin.bottom)
+                 .append("g")
+                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      //Create Y axis
+      this.yEl = this.svg.append("g")
+                 .attr("class", "axis")
+                 .attr("transform", "translate(" + 30 + ",0)");
+      this.xEl = this.svg.append("g")
+                 .attr("class", "axis")
+                 .attr("transform", "translate(0, "+this.height+")");
+
+      this.path = this.svg.append("path");
+    },
+
+    update: function() {
+      var data = this.wheel.forceHistory,
+          self = this;
+
+      this.x = d3.scale.linear()
+               .range([30, this.width])
+               .domain([0, data.length]);
+
+      this.y = d3.scale.linear()
+               .range([this.height, 0])
+               .domain([d3.min(data), d3.max(data)]);
+
+      var yAxis = d3.svg.axis()
+                  .scale(this.y)
+                  .orient("left")
+                  .ticks(10);
+
+      this.yEl.call(yAxis);
+
+      this.line = d3.svg.line()
+		 .x(function(d, i) { return self.x(i); })
+		 .y(function(d, i) { return self.y(d); });
+
+
+      this.path.datum(data)
+      .attr("d", this.line);
+    }
+  };
+
   var Bucket = function(angle, wheel) {
     this.wheelSize = wheel.canvas.width;
     this.wheel = wheel;
@@ -8,7 +71,7 @@
     this.angle = angle;
     this.initialize();
     this.__defineGetter__('width', function() {
-      return this._width + Math.sqrt(this.mass / (this.wheel.numBuckets+1));
+      return ((Math.PI * 0.8) / this.wheel.numBuckets) * this.wheel.canvas.width;
     });
     this.__defineSetter__('width', function(width) {
       this._width = width;
@@ -73,12 +136,15 @@
   };
 
   var Wheel = function(numBuckets, fillRate, drainRate, canvas) {
+    this.forceHistory = [];
     this.initialBuckets = numBuckets;
     this.fillRate = fillRate;
     this.drainRate = drainRate;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.initialize();
+
+    this.framesRendered = 0;
   }
 
   Wheel.prototype = {
@@ -88,6 +154,9 @@
 
     initialize: function() {
       _.bindAll(this, 'toggleAnimating', 'animate', 'draw');
+      this.graph = new Graph(this);
+      this.graph.initialize();
+
       this.buckets = [];
       for (var i = 0; i < this.initialBuckets; i++) {
         this.addBucket();
@@ -151,6 +220,7 @@
         target.mass += this.fillRate;
       }
     },
+
     findBucketUnder: function(sourceBucket) {
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         var testBucket = this.buckets[i];
@@ -183,6 +253,11 @@
         angularForce += this.buckets[i].getDownwardForce();
       }
       angularForce *= 1 - this.friction;
+      if (this.framesRendered % 2 == 0) {
+        if (this.forceHistory.length > HISTORY_SIZE) this.forceHistory = this.forceHistory.slice(1);
+        this.forceHistory.push(angularForce/ (this.numBuckets));
+        this.graph.update();
+      }
       for (i = 0, l = this.buckets.length; i < l; i++) {
         this.buckets[i].angle += angularForce / (1000 * this.numBuckets);
         if (this.buckets[i].mass > this.drainRate) {
@@ -219,6 +294,6 @@
     }
 
   };
-
+  context.Graph = Graph;
   context.Wheel = Wheel;
 })(window)

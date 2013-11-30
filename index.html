@@ -14,13 +14,6 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="large-12 columns">
-	<p>
-	 
-	</p>
-      </div>
-    </div>
 
     <div class="row">
       <canvas class="medium-8 columns" width="600" height="600" id="c"></canvas>
@@ -30,17 +23,24 @@
 	  <label>Drip Rate (<span id="drip_value">1.5</span>)</label><input type="range" min="0" max="200" step="0.1" value="1.5" id="drip_slider">
 	  <label>Base Bucket Width (<span id="width_value">10</span>)</label><input type="range" min="0" max="200" step="1" value="10" id="width_slider">
 	  <label>Friction (<span id="friction_value">1</span>%)</label><input type="range" min="0" max="100" step="1" value="1" id="friction_slider">
-	  <button class="" id="add_bucket_button">Add Bucket</button>
+	  <button class="" id="add_bucket_button">Add Bucket (<span id="num_buckets_value">40</span>)</button>
 	  <button class="alert" id="remove_bucket_button">Remove Bucket</button>
 	  <button class="success" id="toggle_animation_button">Toggle Animation</button>
 	</div>
       </div>
     </div>
+    <div class="row">
+      <svg id="graph" class="large-12 columns">
+      </svg>
+    </div>
+
   </body>
+  <script type="application/javascript" src="d3.v3.js"></script>
   <script type="application/javascript" src="underscore.js"></script>
   <script type="application/javascript" src="waterwheel.js"></script>
   <script type="application/javascript">
     var wheel = new Wheel(40, 40, 1.5, document.getElementById('c'));
+    
     document.getElementById('fill_slider').addEventListener('input', function() {
        var parsed = parseFloat(this.value);
        wheel.setFillRate(parsed);
@@ -53,10 +53,12 @@
     });
     document.getElementById('add_bucket_button').addEventListener('click', function() {
        wheel.addBucket();
+       document.getElementById('num_buckets_value').innerHTML = wheel.numBuckets;
        wheel.draw();
     });
     document.getElementById('remove_bucket_button').addEventListener('click', function() {
        wheel.removeBucket();
+       document.getElementById('num_buckets_value').innerHTML = wheel.numBuckets;
        wheel.draw();
     });
     document.getElementById('toggle_animation_button').addEventListener('click', function() {
