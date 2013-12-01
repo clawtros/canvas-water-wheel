@@ -71,22 +71,10 @@
     this.mass = 100 + Math.random() * 100;
     this.angle = angle;
     this.initialize();
-    this.__defineGetter__('width', function() {
-      return ((Math.PI * 0.8) / this.wheel.numBuckets) * this.wheel.canvas.width;
-    });
-    this.__defineSetter__('width', function(width) {
-      this._width = width;
-    });
-    this.__defineGetter__('height', function() {
-      return this._height + Math.sqrt(this.mass / (this.wheel.numBuckets+1));
-    });
-    this.__defineSetter__('height', function(height) {
-      this._height = height;
-    });
+
   }
   Bucket.prototype = {
-    _width: 10,
-    _height: 10,
+    height: 5,
     baseMass: 5,
     initialize: function() {
       this.updatePosition();
@@ -95,15 +83,14 @@
       return Math.sin(this.angle) * (this.mass + 1) * -1;
     },
     updatePosition: function() {
-      this.x = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.sin(this.angle);
-      this.y = this.wheelSize * 0.5 + this.wheelSize * 0.4 * Math.cos(this.angle);
+      this.x = this.wheelSize * 0.5 + this.wheelSize * 0.35 * Math.sin(this.angle);
+      this.y = this.wheelSize * 0.5 + this.wheelSize * 0.35 * Math.cos(this.angle);
     },
     draw: function(ctx) {
-      this.updatePosition();
 
       if (this.is_target) {
         ctx.save();
-        ctx.fillStyle = '#8ED6FF';
+
         ctx.strokeStyle = '#8ED6FF';
         ctx.beginPath();
         ctx.moveTo(this.wheel.spoutPosition, this.y);
@@ -129,10 +116,20 @@
         ctx.stroke();
       }
       ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#ffffff';
 
-      ctx.fillRect(this.x - this.width / 2,
+      ctx.strokeRect(this.x - this.width / 2,
                    this.y - this.height / 2,
                    this.width, this.height);
+      ctx.fillStyle = '#8ED6FF';
+      ctx.strokeRect(this.x - this.width / 2,
+                   this.y + this.height / 2,
+                   this.width, Math.sqrt(this.mass * 0.25));
+      ctx.fillRect(this.x - this.width / 2,
+                   this.y + this.height / 2,
+                   this.width, Math.sqrt(this.mass * 0.25));
+
     }
   };
 
@@ -160,17 +157,26 @@
       for (var i = 0; i < this.initialBuckets; i++) {
         this.addBucket();
       }
-      this.draw();
       this.canvas.addEventListener('click', this.toggleAnimating);
       this.graph.update();
+      this.draw();
+    },
+
+    bucketWidth: function() {
+      return ((Math.PI * 0.8) / this.numBuckets) * this.canvas.width;
     },
 
     addBucket: function() {
-      var angleDelta = 2 * Math.PI / (this.buckets.length + 1);
+      var angleDelta = 2 * Math.PI / (this.buckets.length + 1),
+          bucketWidth = this.bucketWidth();
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
+        this.buckets[i].width = bucketWidth;
+        this.buckets[i].updatePosition();
       }
-      this.buckets.push(new Bucket((i) * angleDelta, this));
+      var newBucket = new Bucket((i) * angleDelta, this);
+      newBucket.width = bucketWidth;
+      this.buckets.push(newBucket);
       this.numBuckets = this.buckets.length;
     },
 
@@ -182,9 +188,11 @@
 
     removeBucket: function() {
       this.buckets = this.buckets.slice(1);
-      var angleDelta = 2 * Math.PI / (this.buckets.length);
+      var angleDelta = 2 * Math.PI / (this.buckets.length),
+          bucketWidth = this.bucketWidth();
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
+        this.buckets[i].width = bucketWidth;
       }
       this.numBuckets = this.buckets.length;
     },
@@ -254,8 +262,11 @@
     animate: function() {
       var angularForce = 0;
       this.fillSpoutTarget();
+
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         this.buckets[i].targetBucket = false;
+
+        this.buckets[i].updatePosition();
         angularForce += this.buckets[i].getDownwardForce();
       }
       angularForce *= 1 - this.friction;
@@ -274,6 +285,8 @@
           this.buckets[i].mass = 0;
         }
       }
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.draw();
 
       if (this.forceHistory.length > HISTORY_SIZE) this.forceHistory = this.forceHistory.slice(1);
@@ -283,21 +296,24 @@
     },
 
     drawSpokes: function() {
+      this.ctx.save();
+      this.strokeStyle = "#000000";
+      this.ctx.lineWidth = 2;
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         this.ctx.beginPath();
         this.ctx.moveTo(this.buckets[i].x, this.buckets[i].y);
         this.ctx.lineTo(this.canvas.width / 2, this.canvas.height / 2);
-        this.ctx.lineWidth = 2;
         this.ctx.stroke();
       }
+      this.ctx.restore();
     },
 
     draw: function() {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.drawSpokes();
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         this.buckets[i].draw(this.ctx);
       }
-      this.drawSpokes();
+
     }
 
   };
