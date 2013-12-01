@@ -2,7 +2,7 @@
 
 (function (context) {
 
-  var HISTORY_SIZE = Infinity;
+  var HISTORY_SIZE = 1000;
 
   var Graph = function(wheel) {
     _.bindAll(this, 'initialize', 'update');
@@ -12,11 +12,11 @@
 
   Graph.prototype = {
     initialize: function() {
-      var margin = {top: 20, right: 50, bottom: 30, left: 50},
+      var margin = {top: 20, right: 20, bottom: 30, left: 20},
           data = this.wheel.forceHistory;
 
-      this.width = 1060 - margin.left - margin.right;
-      this.height = 700 - margin.top - margin.bottom;
+      this.width = 960;
+      this.height = 400 - margin.top - margin.bottom;
 
       this.svg = d3.select("#graph")
                  .attr("width", this.width + margin.left + margin.right)
@@ -55,8 +55,9 @@
       this.yEl.call(yAxis);
 
       this.line = d3.svg.line()
-		 .x(function(d, i) { return self.x(i); })
-		 .y(function(d, i) { return self.y(d); });
+//                  .interpolate('basis')
+		  .x(function(d, i) { return self.x(i); })
+		  .y(function(d) { return self.y(d); });
 
 
       this.path.datum(data)
@@ -67,7 +68,7 @@
   var Bucket = function(angle, wheel) {
     this.wheelSize = wheel.canvas.width;
     this.wheel = wheel;
-    this.mass = Math.random() * 100;
+    this.mass = 100 + Math.random() * 100;
     this.angle = angle;
     this.initialize();
     this.__defineGetter__('width', function() {
@@ -143,8 +144,6 @@
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.initialize();
-
-    this.framesRendered = 0;
   }
 
   Wheel.prototype = {
@@ -163,6 +162,7 @@
       }
       this.draw();
       this.canvas.addEventListener('click', this.toggleAnimating);
+      this.graph.update();
     },
 
     addBucket: function() {
@@ -222,15 +222,21 @@
     },
 
     findBucketUnder: function(sourceBucket) {
+      var result = false,
+          resultY = Infinity;
+
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         var testBucket = this.buckets[i];
-        if (testBucket.x > sourceBucket.x - sourceBucket.width / 2 &&
-            testBucket.x < sourceBucket.x + sourceBucket.width / 2 &&
+        if (testBucket.x > sourceBucket.x - (sourceBucket.width / 2) &&
+            testBucket.x < sourceBucket.x + (sourceBucket.width / 2) &&
             testBucket.y > sourceBucket.y) {
-          return testBucket;
+          if (testBucket.y < resultY) {
+            resultY = testBucket.y;
+            result = testBucket;
+          }
         }
       }
-      return false;
+      return result;
     },
 
     setFillRate: function(newValue) {
@@ -253,11 +259,7 @@
         angularForce += this.buckets[i].getDownwardForce();
       }
       angularForce *= 1 - this.friction;
-      if (this.framesRendered % 2 == 0) {
-        if (this.forceHistory.length > HISTORY_SIZE) this.forceHistory = this.forceHistory.slice(1);
-        this.forceHistory.push(angularForce/ (this.numBuckets));
-        this.graph.update();
-      }
+
       for (i = 0, l = this.buckets.length; i < l; i++) {
         this.buckets[i].angle += angularForce / (1000 * this.numBuckets);
         if (this.buckets[i].mass > this.drainRate) {
@@ -273,6 +275,11 @@
         }
       }
       this.draw();
+
+      if (this.forceHistory.length > HISTORY_SIZE) this.forceHistory = this.forceHistory.slice(1);
+      this.forceHistory.push(angularForce/ (this.numBuckets));
+      this.graph.update();
+
     },
 
     drawSpokes: function() {
