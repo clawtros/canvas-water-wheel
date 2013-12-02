@@ -168,13 +168,17 @@
 
     addBucket: function() {
       var angleDelta = 2 * Math.PI / (this.buckets.length + 1),
-          bucketWidth = this.bucketWidth();
+          bucketWidth = this.bucketWidth(),
+          firstAngle = 0;
+      if (this.buckets[0] !== undefined) {
+        firstAngle = this.buckets[0].angle;
+      }
       for (var i = 0; i < this.buckets.length; i++) {
-        this.buckets[i].angle = i * angleDelta;
+        this.buckets[i].angle = i * angleDelta + firstAngle;
         this.buckets[i].width = bucketWidth;
         this.buckets[i].updatePosition();
       }
-      var newBucket = new Bucket((i) * angleDelta, this);
+      var newBucket = new Bucket((i) * angleDelta + firstAngle, this);
       newBucket.width = bucketWidth;
       this.buckets.push(newBucket);
       this.numBuckets = this.buckets.length;
@@ -189,10 +193,15 @@
     removeBucket: function() {
       this.buckets = this.buckets.slice(1);
       var angleDelta = 2 * Math.PI / (this.buckets.length),
-          bucketWidth = this.bucketWidth();
+          bucketWidth = this.bucketWidth(),
+        firstAngle = 0;
+      if (this.buckets[0] !== undefined) {
+        firstAngle = this.buckets[0].angle;
+      }
       for (var i = 0; i < this.buckets.length; i++) {
         this.buckets[i].angle = i * angleDelta;
         this.buckets[i].width = bucketWidth;
+        this.buckets[i].updatePosition();
       }
       this.numBuckets = this.buckets.length;
     },
@@ -286,7 +295,6 @@
         }
       }
 
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.draw();
 
       if (this.forceHistory.length > HISTORY_SIZE) this.forceHistory = this.forceHistory.slice(1);
@@ -309,6 +317,8 @@
     },
 
     draw: function() {
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.drawSpokes();
       for (var i = 0, l = this.buckets.length; i < l; i++) {
         this.buckets[i].draw(this.ctx);
